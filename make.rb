@@ -3,35 +3,64 @@ require 'pry'
 
 RAD_PER_DEG = 0.017453293  #  PI/180
 
-# class Hash
-#   def sample(n=1, random: rng)
-#     random = rand if not rng
-#     res =
-#   end
-# end
+class Hash
+  def sample(n=1)
+    self.keys.shuffle.take(n)
+  end
+end
 
-Address = Struct.new(:number, :street, :town, :state, :lat, :lng)
-Bar = Struct.new(:id, :name, :address)
+Address = Struct.new(:number, :street, :town, :state, :lat, :lng) do
+  def to_loc
+    {lat: self.lat, lng: self.lng}
+  end
+
+  def town_state_s
+    "#{self.town}, #{self.state}"
+  end
+
+  def to_s
+    "%i %s, %s {%f, %f}" % [self.number, self.street, self.town_state_s(), self.lat, self.lng]
+  end
+end
+
+Bar = Struct.new(:id, :name, :address) do
+  def to_s
+    "#{self.id}: #{self.name} (#{self.address.to_s})"
+  end
+end
+
 Person = Struct.new(:id, :name, :address, :company_id, :age)
-Company = Struct.new(:id, :name, :address, :num_employees)
-
-population_size = ARGV[0] ? ARGV[0].to_i : 10000
-puts "Generating a world of #{population_size} people"
+Company = Struct.new(:id, :name, :address, :employees)
 
 first_names = File.open("./Given-Names.txt", "r").readlines.map(&:strip)
 last_names = File.open("./Family-Names.txt", "r").readlines.map(&:strip)
 street_names = File.open('./Addresses.txt', "r").readlines.map {|x| f = x.split; f.shift; f.join(' ') }
-towns = JSON.parse(File.open('./Towns2.txt', "r").readlines.join) # contains a map of town names to lat/long map
+towns = JSON.parse(File.open('./Towns2.txt', "r").readlines.join).each_pair { |k,t|
+  t[:lat] = t['lat']; t[:lng] = t['lng'];
+  t.delete 'lat'; t.delete 'lng';} # contains a map of town names to lat/long map
 bar_names = File.open('./Bar-Names.txt', "r").readlines.map(&:strip)
 company_names = File.open('./Companies.txt', "r").readlines.map(&:strip).shuffle
+
+population_size = ARGV[0] ? ARGV[0].to_i : 10000
+bar_size = ARGV[1] ? [ARGV[1].to_i, bar_names.size].min : bar_names.size
+town_size = ARGV[2] ? [ARGV[2].to_i, towns.keys.size].min : towns.keys.size
+puts "Generating a world of #{population_size} people drinking at #{bar_size} bars in #{town_size} towns"
 
 sample_distribution = -> dist {
   dist.sample.to_a.sample
 }
 
-randAddress = -> town=nil, state=nil {
+randAddress = Proc.new do |town_name=nil, state=nil|
   new_town, new_state = towns.keys.sample.split(', ')
-  return Address.new((rand * 9999).to_i, street_names.sample, town || new_town, state || new_state)
+  town_name ||= new_town
+  state ||= new_state
+
+  town_loc = towns["#{town_name}, #{state}"]
+  Address.new((rand * 9999).to_i, street_names.sample, town_name, state, town_loc[:lat], town_loc[:lng])
+end
+
+randAddressInTown = -> full_town_name=nil {
+  return randAddress[full_town_name.split(', ')]
 }
 
 age_distribution = [(21..24), (21..24), (21..24), (21..24), (21..24), (21..24), (21..24),
@@ -59,6 +88,8 @@ people_clone = people.dup
 # make up some companies and employ people for that company in one town
 companies = []
 company_names.each_with_index do |company_name, id|
+  break if people.empty?
+
   addr = randAddress[]
   c = Company.new(id, company_name, addr)
 
@@ -70,8 +101,15 @@ company_names.each_with_index do |company_name, id|
     worker.address = address
     worker.company_id = id
   end
+  c.employees = workers
   companies << c
 end
+
+# lets not care about companies with no employees
+companies.delete_if {|c| c.employees.size == 0}
+
+# if there are people without jobs, we should kill them
+people.delete_if {|p| p.company_id.nil? }
 
 def haversine_distance(lat1, lon1, lat2, lon2)
   dlon = lon2 - lon1
@@ -92,13 +130,34 @@ def haversine_distance(lat1, lon1, lat2, lon2)
   return 3956 * c          # delta between the two points in miles
 end
 
-def distance_between_towns(town_a, town_b)
-  return haversine_distance(town_a['lat'], town_a['lng'], town_b['lat'], town_b['lng'])
-end
+# get distance between two towns. Cache the distance between two towns after one computation
+town_d_cache = {}
+distance_between_towns = -> town_a, town_b {
+  return town_d_cache[town_a][town_b] unless town_d_cache[town_a].nil? || town_d_cache[town_a][town_b].nil?
+  return town_d_cache[town_b][town_a] unless town_d_cache[town_b].nil? || town_d_cache[town_b][town_a].nil?
 
-nearest_bars = -> target_town, n=nil {
-  distances = towns.sort_by {|town_name, town| distance_between_towns(target_town, town) }.drop(1)
-  n ? distances.take(n) : distances
+  d = haversine_distance(town_a[:lat], town_a[:lng], town_b[:lat], town_b[:lng])
+  town_d_cache[town_a] ||= {}; town_d_cache[town_a][town_b] ||= d
+  town_d_cache[town_b] ||= {}; town_d_cache[town_b][town_a] ||= d
+  return d
 }
 
-puts nearest_bars[towns["New Brunswick, NJ"], 2].map{|town_name, town_loc| "#{town_name}: #{distance_between_towns(towns["New Brunswick, NJ"], town_loc).round} miles"}
+nearest_towns = -> target_town, n=nil {
+  distances = towns.sort_by {|town_name, town| distance_between_towns[target_town, town] }.drop(1)
+  nearest = (n ? distances.take(n) : distances)
+}
+
+bars = []
+bar_names.take(bar_size).each_with_index do |bar_name, id|
+  bars << Bar.new(id, bar_name, nil)
+end
+bars_clone = bars.dup
+
+locs_with_companies = companies.map {|c| c.address.to_loc }
+locs_with_companies_clone = locs_with_companies.dup
+
+# put a bar in every town
+towns.map {|town_name, loc| bar = bars_clone.shift(1)[0]; break if bar.nil?; bar.address = randAddressInTown[town_name];}
+bars_clone.each {|bar| bar.address = randAddressInTown[towns.keys.sample]}
+
+bars.group_by {|bar| bar.address.town_state_s}.each_pair {|town, bars| puts town; bars.each {|b| puts "\t#{b.name}"}}
