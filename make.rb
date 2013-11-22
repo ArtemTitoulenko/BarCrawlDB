@@ -1,50 +1,23 @@
 require 'json'
 require 'pry'
 
+require './classes'
+
 RAD_PER_DEG = 0.017453293  #  PI/180
 
-class Hash
-  def sample(n=1)
-    self.keys.shuffle.take(n)
-  end
-end
-
-Address = Struct.new(:number, :street, :town, :state, :lat, :lng) do
-  def to_loc
-    {lat: self.lat, lng: self.lng}
-  end
-
-  def town_state_s
-    "#{self.town}, #{self.state}"
-  end
-
-  def to_s
-    "%i %s, %s {%f, %f}" % [self.number, self.street, self.town_state_s(), self.lat, self.lng]
-  end
-end
-
-Bar = Struct.new(:id, :name, :address) do
-  def to_s
-    "#{self.id}: #{self.name} (#{self.address.to_s})"
-  end
-end
-
-Person = Struct.new(:id, :name, :address, :company_id, :age)
-Company = Struct.new(:id, :name, :address, :employees)
-
-first_names = File.open("./Given-Names.txt", "r").readlines.map(&:strip)
-last_names = File.open("./Family-Names.txt", "r").readlines.map(&:strip)
-street_names = File.open('./Addresses.txt', "r").readlines.map {|x| f = x.split; f.shift; f.join(' ') }
-towns = JSON.parse(File.open('./Towns2.txt', "r").readlines.join).each_pair { |k,t|
-  t[:lat] = t['lat']; t[:lng] = t['lng'];
-  t.delete 'lat'; t.delete 'lng';} # contains a map of town names to lat/long map
-bar_names = File.open('./Bar-Names.txt', "r").readlines.map(&:strip)
-company_names = File.open('./Companies.txt', "r").readlines.map(&:strip).shuffle
+first_names = File.readlines("./Given-Names.txt").map(&:strip)
+last_names = File.readlines("./Family-Names.txt").map(&:strip)
+street_names = File.readlines('./Addresses.txt').map {|x| f = x.split; f.shift; f.join(' ') }
+towns = JSON.parse(File.readlines('./Towns2.txt').join).each_value {|v| v.keys_to_sym('lat', 'lng')} # contains a map of town names to lat/long map
+bar_names = File.readlines('./Bar-Names.txt').map(&:strip)
+company_names = File.readlines('./Companies.txt').map(&:strip).shuffle
+beer_names = JSON.parse(File.readlines('./Beers.txt').join).map {|v| v.keys_to_sym}
 
 population_size = ARGV[0] ? ARGV[0].to_i : 10000
 bar_size = ARGV[1] ? [ARGV[1].to_i, bar_names.size].min : bar_names.size
 town_size = ARGV[2] ? [ARGV[2].to_i, towns.keys.size].min : towns.keys.size
-puts "Generating a world of #{population_size} people drinking at #{bar_size} bars in #{town_size} towns"
+towns = Hash[towns.take(town_size)] if town_size < towns.size
+puts "Generating a world of #{population_size} people drinking at #{bar_size} bars serving #{beer_names.size} beers in #{town_size} towns"
 
 sample_distribution = -> dist {
   dist.sample.to_a.sample
@@ -83,7 +56,7 @@ population_size.times do |i|
   age = sample_distribution[age_distribution]
   people << Person.new(i, "#{first_names.sample} #{last_names.sample}", nil, nil, age)
 end
-people_clone = people.dup
+puts "made people"
 
 # make up some companies and employ people for that company in one town
 companies = []
@@ -104,19 +77,20 @@ company_names.each_with_index do |company_name, id|
   c.employees = workers
   companies << c
 end
+puts "made companies"
 
 # lets not care about companies with no employees
 companies.delete_if {|c| c.employees.size == 0}
+puts "deleted empty companies"
 
 # if there are people without jobs, we should kill them
-people.delete_if {|p| p.company_id.nil? }
+# people.delete_if {|p| p.company_id.nil? }
+people = nil
+# puts "deleted job-less people"
 
 def haversine_distance(lat1, lon1, lat2, lon2)
-  dlon = lon2 - lon1
-  dlat = lat2 - lat1
-
-  dlon_rad = dlon * RAD_PER_DEG
-  dlat_rad = dlat * RAD_PER_DEG
+  dlon_rad = (lon2 - lon1) * RAD_PER_DEG
+  dlat_rad = (lat2 - lat1) * RAD_PER_DEG
 
   lat1_rad = lat1 * RAD_PER_DEG
   lon1_rad = lon1 * RAD_PER_DEG
@@ -147,17 +121,32 @@ nearest_towns = -> target_town, n=nil {
   nearest = (n ? distances.take(n) : distances)
 }
 
+# generate all the beers
+tf = [true, false]
+beers = beer_names.map {|beer| Beer.new(beer[:name], beer[:manf], tf[rand.round], beer[:price_range].to_range)}
+puts "made beers"
+
+# make bars give each bar some portion of beers
 bars = []
 bar_names.take(bar_size).each_with_index do |bar_name, id|
-  bars << Bar.new(id, bar_name, nil)
+  beer_costs = {}
+  beers.shuffle.take(rand * beers.size).each do |beer|
+    cost = beer.price_range.to_a.sample
+    beer_costs[cost] ||= []
+    beer_costs[cost] << beer
+  end
+  bar = Bar.new(id, bar_name, nil, beer_costs)
+  bars << bar
 end
 bars_clone = bars.dup
-
-locs_with_companies = companies.map {|c| c.address.to_loc }
-locs_with_companies_clone = locs_with_companies.dup
+puts "made bars and put beers in bars"
 
 # put a bar in every town
 towns.map {|town_name, loc| bar = bars_clone.shift(1)[0]; break if bar.nil?; bar.address = randAddressInTown[town_name];}
 bars_clone.each {|bar| bar.address = randAddressInTown[towns.keys.sample]}
+puts "put a bar in every town"
 
-bars.group_by {|bar| bar.address.town_state_s}.each_pair {|town, bars| puts town; bars.each {|b| puts "\t#{b.name}"}}
+# show bars by town
+#bars.group_by {|bar| bar.address.town_state_s}.each_pair {|town, bars| puts town; bars.each {|b| puts "\t#{b.name}"; puts b.sells }}
+
+
