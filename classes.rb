@@ -38,6 +38,8 @@ end
 Person = Struct.new(:id, :name, :address, :company_id, :age)
 Company = Struct.new(:id, :name, :address, :employees)
 Beer = Struct.new(:name, :manf, :recyclable, :price_range)
+Buys = Struct.new(:bar_id, :person_id, :beer_name, :quantity, :date)
+# Frequents = Struct.new(:person_id, :bar_id, :weeklyCount)
 
 class Hash
   def keys_to_sym(*keys)

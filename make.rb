@@ -116,9 +116,9 @@ distance_between_towns = -> town_a, town_b {
   return d
 }
 
-nearest_towns = -> target_town, n=nil {
-  distances = towns.sort_by {|town_name, town| distance_between_towns[target_town, town] }.drop(1)
-  nearest = (n ? distances.take(n) : distances)
+nearest_towns = -> host_town, n=nil {
+  distances = towns.sort_by {|town_name, town| distance_between_towns[host_town, town] }.drop(1)
+  n ? distances.take(n) : distances
 }
 
 # generate all the beers
@@ -141,6 +141,11 @@ end
 bars_clone = bars.dup
 puts "made bars and put beers in bars"
 
+nearest_bars = -> host_town, n=nil {
+  distances = bars.sort_by {|bar| distance_between_towns[host_town, bar.address]}.drop(1)
+  n ? distances.take(n) : distances
+}
+
 # put a bar in every town
 towns.map {|town_name, loc| bar = bars_clone.shift(1)[0]; break if bar.nil?; bar.address = randAddressInTown[town_name];}
 bars_clone.each {|bar| bar.address = randAddressInTown[towns.keys.sample]}
@@ -149,4 +154,35 @@ puts "put a bar in every town"
 # show bars by town
 #bars.group_by {|bar| bar.address.town_state_s}.each_pair {|town, bars| puts town; bars.each {|b| puts "\t#{b.name}"; puts b.sells }}
 
+#######################
+#                     #
+# START THE BAR CRAWL #
+#                     #
+#######################
 
+buys = []
+weekday_drinking_prob = [0.4, 0.05, 0.05, 0.1, 0.15, 0.5, 0.7]
+days_of_drinking = 31 * 6 # 6 months
+
+# pick some people from every company and make them go on a bar crawl together
+companies.each do |company|
+  # take all the workers, some percentage >= 50 of the company's workers and deem them drinkers
+  company_workers = company.employees.dup
+  drinking_workers = company_workers.shift(company_workers.size/2 + rand(company_workers.size * 0.5))
+  company_workers = nil # garbage collect it
+
+  drinking_groups = []
+  while not drinking_workers.empty? do
+    # drinking buddies, groups of employees who drink together, are no larger than 11 people
+    drinking_groups << drinking_workers.shift(2 + rand(9))
+  end
+
+  nearby_bars = nearest_bars[company.address]
+  the_regular = nearby_bars.take(3) # the bar crawl that happens the most often
+
+  days_of_drinking.times do |day|
+    num_bars_to_visit = rand(6)
+
+  end
+
+end
