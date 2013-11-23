@@ -50,3 +50,7 @@ class Hash
     return self
   end
 end
+
+def irand(limit=1)
+  return rand(limit).round
+end

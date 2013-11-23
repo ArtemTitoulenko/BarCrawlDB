@@ -123,14 +123,14 @@ nearest_towns = -> host_town, n=nil {
 
 # generate all the beers
 tf = [true, false]
-beers = beer_names.map {|beer| Beer.new(beer[:name], beer[:manf], tf[rand.round], beer[:price_range].to_range)}
+beers = beer_names.map {|beer| Beer.new(beer[:name], beer[:manf], tf[irand()], beer[:price_range].to_range)}
 puts "made beers"
 
 # make bars give each bar some portion of beers
 bars = []
 bar_names.take(bar_size).each_with_index do |bar_name, id|
   beer_costs = {}
-  beers.shuffle.take(rand * beers.size).each do |beer|
+  beers.shuffle.take(irand(beers.size-2)+1).each do |beer|
     cost = beer.price_range.to_a.sample
     beer_costs[cost] ||= []
     beer_costs[cost] << beer
@@ -161,28 +161,86 @@ puts "put a bar in every town"
 #######################
 
 buys = []
-weekday_drinking_prob = [0.4, 0.05, 0.05, 0.1, 0.15, 0.5, 0.7]
+weekday_drinking_prob_young = [0.4, 0.05, 0.05, 0.1, 0.15, 0.5, 0.7]
+weekday_drinking_prob_old = [0.2, 0.02, 0.02, 0.1, 0.07, 0.3, 0.6]
+weekday_drinking = [weekday_drinking_prob_young, weekday_drinking_prob_old]
+
 days_of_drinking = 31 * 6 # 6 months
+
+is_old = -> person { return person.age > 25 ? 1 : 0 }
+
+buy_some_drinks = -> person, bar, day, bar_of_the_day {
+  # young people drink less beer and it's cheaper beer
+  old = is_old[person]
+
+  beer_prices = bar.sells.keys.sort
+  cheap = beer_prices.shift(beer_prices.size/2)
+  expensive = beer_prices
+  categories = [cheap, expensive]
+
+  # old == 0 => 2 beers at most, old == 1 => 4 beers at most
+  irand([2,4][old]).times do |i|
+    # old == 0 => cheap list, old == 1 => expensive list
+    # try to grab a beer from that person's preferred category
+    # if it's not there, grab one from the other one
+    category = [cheap, expensive][old]
+    category = [cheap, expensive][(old == 0 ? 1 : 0)] if category.empty?
+    beer = bar.sells[category.sample].sample
+    buys << Buys.new(bar.id, person.id, beer.name, irand(2), day + (0.1 * bar_of_the_day))
+  end
+}
+
+# people[], bars[], day, bar_of_the_day int
+bar_crawl = -> people, bars, day {
+  bars.each_with_index do |bar, bar_of_the_day|
+    people.each do |person|
+      # young people drink less beer and it's cheaper beer
+      old = is_old[person]
+
+      # if they probably aren't drinking today, don't buy any drinks
+      next if weekday_drinking[old][day] > rand
+
+      buy_some_drinks[person, bar, day, bar_of_the_day]
+    end
+  end
+}
 
 # pick some people from every company and make them go on a bar crawl together
 companies.each do |company|
   # take all the workers, some percentage >= 50 of the company's workers and deem them drinkers
+  # and sort them by age, so drinking buddies are of similar age
   company_workers = company.employees.dup
-  drinking_workers = company_workers.shift(company_workers.size/2 + rand(company_workers.size * 0.5))
-  company_workers = nil # garbage collect it
 
+  drinking_workers = company_workers.shift(company_workers.size/2 + irand(company_workers.size * 0.5)).sort_by! {|a| a.age}
+
+  # create workers who go drinking alone, to add noise, but not enough to ruin everything
+  noise_drinkers = company_workers.shift(irand(company_workers.size * 0.10))
+
+  # make groups of drinking buddies, they always go to the same bars together
   drinking_groups = []
   while not drinking_workers.empty? do
     # drinking buddies, groups of employees who drink together, are no larger than 11 people
-    drinking_groups << drinking_workers.shift(2 + rand(9))
+    drinking_groups << drinking_workers.shift(2 + irand(9))
   end
 
   nearby_bars = nearest_bars[company.address]
-  the_regular = nearby_bars.take(3) # the bar crawl that happens the most often
+  drinking_groups.each do |group|
+    the_regular = nearby_bars.drop(irand(4)).take(2) # the bar crawl that the group does the most often
 
-  days_of_drinking.times do |day|
-    num_bars_to_visit = rand(6)
+    # simulate their drinking lives
+    days_of_drinking.times do |day|
+      day_of_the_week = day % 7
+      num_bars_to_visit = irand(4)
 
+      # do "the regular" 75% of the time
+      if rand > 0.25
+        bar_crawl[group, the_regular, day_of_the_week]
+      else
+        # skip at most 4 of the nearby bars, and try to visit the others
+        bar_crawl[group, nearby_bars.drop(irand(4)).take(num_bars_to_visit), day_of_the_week]
+      end
+    end
   end
-
 end
+
+puts "your population averages #{ 10.0 * 0.1 * buys.size / population_size / days_of_drinking} beers a day"
