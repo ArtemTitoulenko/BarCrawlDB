@@ -4,7 +4,10 @@ require 'json'
 
 require 'mysql2'
 
-client = Mysql2::Client.new(:host => "localhost", :username => "root")
+config = {host: 'localhost', username: 'root'} unless ENV['BARCRAWLDB_ENV'] == 'prod'
+config = {host: 'localhost', username: 'csuser', password: 'csb0684d'} if ENV['BARCRAWLDB_ENV'] == 'prod'
+
+client = Mysql2::Client.new(config)
 client.query('use barcrawldb;')
 
 q = -> query { return client.query(query).to_a }
