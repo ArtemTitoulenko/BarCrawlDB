@@ -1,6 +1,8 @@
 require 'json'
 require 'pry'
+require 'mysql2'
 
+require './util'
 require './classes'
 
 RAD_PER_DEG = 0.017453293  #  PI/180
@@ -123,7 +125,8 @@ nearest_towns = -> host_town, n=nil {
 
 # generate all the beers
 tf = [true, false]
-beers = beer_names.map {|beer| Beer.new(beer[:name], beer[:manf], tf[irand()], beer[:price_range].to_range)}
+beers = []
+beer_names.each_with_index {|beer, id| beers << Beer.new(id, beer[:name], beer[:manf], tf[irand()], beer[:price_range].to_range)}
 puts "made beers"
 
 # make bars give each bar some portion of beers
@@ -186,7 +189,7 @@ buy_some_drinks = -> person, bar, day, bar_of_the_day {
     category = [cheap, expensive][old]
     category = [cheap, expensive][(old == 0 ? 1 : 0)] if category.empty?
     beer = bar.sells[category.sample].sample
-    buys << Buys.new(bar.id, person.id, beer.name, irand(2), day + (0.1 * bar_of_the_day))
+    buys << Buys.new(bar.id, person.id, beer.id, irand(2), day + (0.1 * bar_of_the_day))
   end
 }
 
@@ -225,12 +228,16 @@ companies.each do |company|
 
   nearby_bars = nearest_bars[company.address]
   drinking_groups.each do |group|
-    the_regular = nearby_bars.drop(irand(4)).take(2) # the bar crawl that the group does the most often
+    age_average = group.reduce(0) {|memo, person| memo + person.age} / group.size
+
+    the_regular = nearby_bars.drop(irand(4)).take(age_average > 25 ? 2 : 4) # the bar crawl that the group does the most often
 
     # simulate their drinking lives
     days_of_drinking.times do |day|
       day_of_the_week = day % 7
-      num_bars_to_visit = irand(4)
+
+      # old people visit at most 2 bars, young visit 4
+      num_bars_to_visit = (age_average > 25 ? irand(2) : irand(4))
 
       # do "the regular" 75% of the time
       if rand > 0.25
@@ -243,4 +250,39 @@ companies.each do |company|
   end
 end
 
-puts "your population averages #{ 10.0 * 0.1 * buys.size / population_size / days_of_drinking} beers a day"
+puts "your population averages #{ 1.0 * buys.size / population_size / days_of_drinking} beers a day"
+
+# lets start populating a database with BIG DATA
+# lol security
+client = Mysql2::Client.new(:host => "localhost", :username => "root")
+init_database(client)
+init_tables(client)
+
+# insert companies and their workers
+companies.each do |company|
+  insert_company(client, company)
+  insert_drinkers(client, company.employees)
+end
+
+# insert beers
+beers.each do |beer|
+  insert_beer(client, beer)
+end
+
+# insert bars and the beers they sell
+bars.each do |bar|
+  insert_bar(client, bar)
+
+  bar.sells.each_pair do |price, beers|
+    beers.each do |beer|
+      insert_beer_sale(client, bar, beer, price)
+    end
+  end
+end
+
+# insert sales
+buys.each_slice(200).each do |buys|
+  insert_purchases(client, buys)
+end
+
+puts "DONE!"

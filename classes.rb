@@ -37,20 +37,6 @@ end
 
 Person = Struct.new(:id, :name, :address, :company_id, :age)
 Company = Struct.new(:id, :name, :address, :employees)
-Beer = Struct.new(:name, :manf, :recyclable, :price_range)
-Buys = Struct.new(:bar_id, :person_id, :beer_name, :quantity, :date)
+Beer = Struct.new(:id, :name, :manf, :recyclable, :price_range)
+Buys = Struct.new(:bar_id, :person_id, :beer_id, :quantity, :date)
 # Frequents = Struct.new(:person_id, :bar_id, :weeklyCount)
-
-class Hash
-  def keys_to_sym(*keys)
-    self.keys.each do |key|
-      self[key.to_sym] = self[key]
-      self.delete key
-    end
-    return self
-  end
-end
-
-def irand(limit=1)
-  return rand(limit).round
-end
