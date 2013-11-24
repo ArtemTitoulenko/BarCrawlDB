@@ -256,7 +256,11 @@ puts "wow! your population averages #{ 1.0 * buys.size / population_size / days_
 
 # lets start populating a database with BIG DATA
 # lol security
-client = Mysql2::Client.new(:host => "localhost", :username => "root")
+
+config = {host: 'localhost', username: 'root'} unless ENV['BARCRAWLDB_ENV'] == 'prod'
+config = {host: 'localhost', username: 'csuser', password: 'csb0684d'} if ENV['BARCRAWLDB_ENV'] == 'prod'
+
+client = Mysql2::Client.new(config)
 init_database(client)
 init_tables(client)
 
