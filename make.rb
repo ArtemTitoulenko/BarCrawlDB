@@ -163,6 +163,8 @@ puts "put a bar in every town"
 #                     #
 #######################
 
+puts "getting everyone WICKED hammered"
+
 buys = []
 weekday_drinking_prob_young = [0.4, 0.05, 0.05, 0.1, 0.15, 0.5, 0.7]
 weekday_drinking_prob_old = [0.2, 0.02, 0.02, 0.1, 0.07, 0.3, 0.6]
@@ -250,7 +252,7 @@ companies.each do |company|
   end
 end
 
-puts "your population averages #{ 1.0 * buys.size / population_size / days_of_drinking} beers a day"
+puts "wow! your population averages #{ 1.0 * buys.size / population_size / days_of_drinking} beers a day"
 
 # lets start populating a database with BIG DATA
 # lol security

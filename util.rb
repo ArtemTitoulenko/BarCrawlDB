@@ -22,10 +22,10 @@ end
 def init_database(client)
   return unless client.is_a? Mysql2::Client
 
-  client.query('drop database barcrawldb2;')
+  client.query('drop database barcrawldb;')
 
-  client.query('CREATE DATABASE IF NOT EXISTS barcrawldb2;')
-  client.query('USE barcrawldb2;')
+  client.query('CREATE DATABASE IF NOT EXISTS barcrawldb;')
+  client.query('USE barcrawldb;')
 end
 
 # create tables
