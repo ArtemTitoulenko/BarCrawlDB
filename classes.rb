@@ -38,5 +38,5 @@ end
 Person = Struct.new(:id, :name, :address, :company_id, :age)
 Company = Struct.new(:id, :name, :address, :employees)
 Beer = Struct.new(:id, :name, :manf, :recyclable, :price_range)
-Buys = Struct.new(:bar_id, :person_id, :beer_id, :quantity, :date)
+Buys = Struct.new(:bar_id, :person_id, :beer_id, :quantity, :day, :bar_number)
 # Frequents = Struct.new(:person_id, :bar_id, :weeklyCount)

@@ -166,13 +166,13 @@ puts "put a bar in every town"
 puts "getting everyone WICKED hammered"
 
 buys = []
-weekday_drinking_prob_young = [0.4, 0.05, 0.05, 0.1, 0.15, 0.5, 0.7]
-weekday_drinking_prob_old = [0.2, 0.02, 0.02, 0.1, 0.07, 0.3, 0.6]
+weekday_drinking_prob_young = [0.4, 0.05, 0.05, 0.1, 0.15, 0.5, 0.8]
+weekday_drinking_prob_old = [0.02, 0.01, 0.01, 0.01, 0.01, 0.3, 0.4]
 weekday_drinking = [weekday_drinking_prob_young, weekday_drinking_prob_old]
 
 days_of_drinking = 31 * 6 # 6 months
 
-is_old = -> person { return person.age > 25 ? 1 : 0 }
+is_old = -> person { return person.age > 30 ? 1 : 0 }
 
 buy_some_drinks = -> person, bar, day, bar_of_the_day {
   # young people drink less beer and it's cheaper beer
@@ -191,7 +191,7 @@ buy_some_drinks = -> person, bar, day, bar_of_the_day {
     category = [cheap, expensive][old]
     category = [cheap, expensive][(old == 0 ? 1 : 0)] if category.empty?
     beer = bar.sells[category.sample].sample
-    buys << Buys.new(bar.id, person.id, beer.id, irand(2), day + (0.1 * bar_of_the_day))
+    buys << Buys.new(bar.id, person.id, beer.id, irand(2), day, bar_of_the_day)
   end
 }
 
@@ -232,14 +232,14 @@ companies.each do |company|
   drinking_groups.each do |group|
     age_average = group.reduce(0) {|memo, person| memo + person.age} / group.size
 
-    the_regular = nearby_bars.drop(irand(4)).take(age_average > 25 ? 2 : 4) # the bar crawl that the group does the most often
+    the_regular = nearby_bars.drop(irand(4)).take(age_average > 30 ? 2 : 5) # the bar crawl that the group does the most often
 
     # simulate their drinking lives
     days_of_drinking.times do |day|
       day_of_the_week = day % 7
 
       # old people visit at most 2 bars, young visit 4
-      num_bars_to_visit = (age_average > 25 ? irand(2) : irand(4))
+      num_bars_to_visit = (age_average > 30 ? irand(2) : irand(4))
 
       # do "the regular" 75% of the time
       if rand > 0.25

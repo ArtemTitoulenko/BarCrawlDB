@@ -1,11 +1,15 @@
-$purple: hsl(263.8,34.1%,36.3%);
+@import "colors";
 
-nav {
-  a.navbar-brand {
-    color: $purple;
+nav.navbar {
+  background: $purple;
+  border-bottom: 1px solid rgb(70, 50, 101);
+  text-shadow: rgba(0, 0, 0, 0.14902) 0px -1px 0px;
 
-    &:hover {
-      color: lighten($purple, 20%);
+  a {
+    color: rgb(205, 191, 227);
+
+    &.navbar-brand {
+      color: #fff;
     }
   }
 }
@@ -15,7 +19,7 @@ nav {
   height: auto;
   display: block;
   width: 100%;
-  text-align: center;
+  text-align: left;
 
   .headline {
     padding: 240px 0;
@@ -23,12 +27,74 @@ nav {
     .container {
       h1 {
         color: #fff;
-        font-size: 130px;
+        font-size: 100px;
+        margin-left: -10px;
+        margin-bottom: -20px;
       }
 
       h2 {
         color: rgb(205, 191, 227);
-        font-size: 77px;
+        font-size: 32px;
+        font-weight: 300;
+      }
+
+      a.btn-default {
+        font-size: 21px;
+        padding: 20px;
+        color: #fff;
+        background: none;
+      }
+    }
+  }
+}
+
+.featurette-divider {
+  margin: 80px 0;
+}
+
+.featurette {
+  overflow: hidden;
+
+  .featurette-heading {
+    text-align: center;
+    font-size: 50px;
+  }
+}
+
+#overview {
+  .dataset-numbers {
+    h1 {
+      font-size: 76px;
+      font-weight: 900;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 26px;
+      font-weight: 300;
+      text-align: center;
+    }
+  }
+}
+
+#beer-facts {
+  .bar-hist-controls {
+    text-align: center;
+  }
+
+  ul {
+    padding-left: 0;
+
+    li {
+      text-decoration: none;
+      font-size: 21px;
+
+      .beer-name {
+        font-weight: 300;
+      }
+
+      .beer-count {
+        font-weight: 900;
       }
     }
   }

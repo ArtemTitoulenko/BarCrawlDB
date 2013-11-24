@@ -1,19 +1,61 @@
-nav a.navbar-brand {
-  color: #563d7c; }
-  nav a.navbar-brand:hover {
-    color: #886ab6; }
+nav.navbar {
+  background: #563d7c;
+  border-bottom: 1px solid #463265;
+  text-shadow: rgba(0, 0, 0, 0.14902) 0px -1px 0px; }
+  nav.navbar a {
+    color: #cdbfe3; }
+    nav.navbar a.navbar-brand {
+      color: #fff; }
 
 .header-image {
   background: #563d7c;
   height: auto;
   display: block;
   width: 100%;
-  text-align: center; }
+  text-align: left; }
   .header-image .headline {
     padding: 240px 0; }
     .header-image .headline .container h1 {
       color: #fff;
-      font-size: 130px; }
+      font-size: 100px;
+      margin-left: -10px;
+      margin-bottom: -20px; }
     .header-image .headline .container h2 {
       color: #cdbfe3;
-      font-size: 77px; }
+      font-size: 32px;
+      font-weight: 300; }
+    .header-image .headline .container a.btn-default {
+      font-size: 21px;
+      padding: 20px;
+      color: #fff;
+      background: none; }
+
+.featurette-divider {
+  margin: 80px 0; }
+
+.featurette {
+  overflow: hidden; }
+  .featurette .featurette-heading {
+    text-align: center;
+    font-size: 50px; }
+
+#overview .dataset-numbers h1 {
+  font-size: 76px;
+  font-weight: 900;
+  text-align: center; }
+#overview .dataset-numbers h2 {
+  font-size: 26px;
+  font-weight: 300;
+  text-align: center; }
+
+#beer-facts .bar-hist-controls {
+  text-align: center; }
+#beer-facts ul {
+  padding-left: 0; }
+  #beer-facts ul li {
+    text-decoration: none;
+    font-size: 21px; }
+    #beer-facts ul li .beer-name {
+      font-weight: 300; }
+    #beer-facts ul li .beer-count {
+      font-weight: 900; }

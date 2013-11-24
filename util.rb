@@ -63,7 +63,8 @@ def init_tables(client)
     `drinker_id` int(11) unsigned NOT NULL,
     `beer_id` int(11) unsigned NOT NULL,
     `quantity` int(11) unsigned NOT NULL,
-    `date` float NOT NULL
+    `day` int(11) unsigned NOT NULL,
+    `bar_number` int(11) unsigned NOT NULL
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8;')
 
   # beer table
@@ -118,10 +119,10 @@ def insert_beer_sale(client, bar, beer, price)
 end
 
 def insert_purchases(client, purchases)
-  query = "insert into buys (bar_id, drinker_id, beer_id, quantity, date)
+  query = "insert into buys (bar_id, drinker_id, beer_id, quantity, day, bar_number)
     values"
   query << purchases.map { |buy|
-      "('#{buy.bar_id}', '#{buy.person_id}', '#{buy.beer_id}', '#{buy.quantity}', '#{buy.date}')"
+      "('#{buy.bar_id}', '#{buy.person_id}', '#{buy.beer_id}', '#{buy.quantity}', '#{buy.day}', '#{buy.bar_number}')"
     }.join(",") + ";"
   client.query(query)
 end

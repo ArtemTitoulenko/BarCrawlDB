@@ -1,0 +1,14 @@
+.bar rect {
+  fill: #7a58ad;
+  shape-rendering: crispEdges; }
+
+.bar text {
+  fill: #333; }
+
+.axis path, .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges; }
+
+.axis text {
+  font: 12px sans-serif; }

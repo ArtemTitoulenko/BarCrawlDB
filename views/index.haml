@@ -5,11 +5,17 @@
     %title Barcrawl DB
     %link{:href => "/css/bootstrap.css", :rel => "stylesheet"}/
     %link{:href => "/css/carousel.css", :rel => "stylesheet"}/
+
+    %link{href: "/css/colors.css", rel: "stylesheet"}/
     %link{href: "/css/homepage.css", rel: "stylesheet"}/
 
+    %link{href: "/css/drinkers-by-age.css", rel: "stylesheet"}/
+
+    %script{src: "http://d3js.org/d3.v3.min.js"}
+    %script{src: "/js/Chart.min.js"}
 
   %body
-    %nav.navbar.navbar-fixed-top.navbar-inverse{role:"navigation"}
+    %nav.navbar.navbar-fixed-top{role:"navigation"}
       .container
         .navbar-header
           %a.navbar-brand{href:"/"} BarCrawlDB
@@ -25,3 +31,64 @@
         .container
           %h1 BarCrawlDB
           %h2 The Database of Alcoholics
+          %a.btn.btn-default.btn-lg{href:"#overview", } Discover the Dataset
+
+    .container
+      .featurette-divider
+
+      #overview.featurette
+        %h1.featurette-heading The Dataset
+        .dataset-numbers.row
+          .col-lg-4
+            %h1 #{sizes['drinker'].to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse}
+            %h2 Drinkers
+          .col-lg-4
+            %h1 #{sizes['bar']}
+            %h2 Bars
+          .col-lg-4
+            %h1 #{sizes['buys'].to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse}
+            %h2 Purchases
+
+      .featurette-divider
+
+      #drinkers-by-age.featurette
+        %h1.featurette-heading Drinkers By Age
+        .drinker-hist.row
+
+      .featurette-divider
+
+      #avg-bars-visited.featurette
+        %h1.featurette-heading Number Of Bars Visited Per Night
+        .bar-visit-hist
+        .bar-hist-controls.row
+          %center
+            .btn-group
+              %a.active.day-ctl.btn.btn-lg.btn-default{data_day: 0} Sunday
+              %a.day-ctl.btn.btn-lg.btn-default{data_day: 1} Monday
+              %a.day-ctl.btn.btn-lg.btn-default{data_day: 2} Tuesday
+              %a.day-ctl.btn.btn-lg.btn-default{data_day: 3} Wednesday
+              %a.day-ctl.btn.btn-lg.btn-default{data_day: 4} Thursday
+              %a.day-ctl.btn.btn-lg.btn-default{data_day: 5} Friday
+              %a.day-ctl.btn.btn-lg.btn-default{data_day: 6} Saturday
+
+      .featurette-divider
+
+      #beer-facts.featurette
+        .row
+          .col-lg-6
+            %h1 The 5 Best Sellers
+            %ul.best-sellers
+              - top_selling_beer.each do |beer|
+                %li
+                  %span.beer-name.pull-left= beer['name']
+                  %span.beer-count.pull-right= beer['count']
+
+      .featurette-divider
+
+    %script
+      // all the data should go in here
+      var drinker_age_dist = #{drinker_age_dist}
+      var bars_per_age_per_day = #{bars_per_age_per_day}
+      // var top_selling_beer = #{top_selling_beer}
+    %script{src: "/js/drinkers-by-age.js"}
+    %script{src: "/js/bars-per-age-per-day.js"}
