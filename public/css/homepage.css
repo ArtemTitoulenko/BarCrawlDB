@@ -1,0 +1,19 @@
+nav a.navbar-brand {
+  color: #563d7c; }
+  nav a.navbar-brand:hover {
+    color: #886ab6; }
+
+.header-image {
+  background: #563d7c;
+  height: auto;
+  display: block;
+  width: 100%;
+  text-align: center; }
+  .header-image .headline {
+    padding: 240px 0; }
+    .header-image .headline .container h1 {
+      color: #fff;
+      font-size: 130px; }
+    .header-image .headline .container h2 {
+      color: #cdbfe3;
+      font-size: 77px; }

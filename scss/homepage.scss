@@ -1,0 +1,35 @@
+$purple: hsl(263.8,34.1%,36.3%);
+
+nav {
+  a.navbar-brand {
+    color: $purple;
+
+    &:hover {
+      color: lighten($purple, 20%);
+    }
+  }
+}
+
+.header-image {
+  background: $purple;
+  height: auto;
+  display: block;
+  width: 100%;
+  text-align: center;
+
+  .headline {
+    padding: 240px 0;
+
+    .container {
+      h1 {
+        color: #fff;
+        font-size: 130px;
+      }
+
+      h2 {
+        color: rgb(205, 191, 227);
+        font-size: 77px;
+      }
+    }
+  }
+}
