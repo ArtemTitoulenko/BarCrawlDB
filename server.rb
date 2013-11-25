@@ -17,9 +17,13 @@ sizes = {}
   sizes[x] = (q["select count(*) from #{x};"].first)["count(*)"]
 end
 
+puts " got sizes"
+
 bars_per_age_per_day = q["select buys.day, drinker.age, avg(buys.bar_number) as num_bars from drinker, buys
 where drinker.id = buys.drinker_id
 group by buys.day, drinker.age"].group_by {|x| x["day"]}
+
+puts "got bars per age per day"
 
 top_selling_beer = q["Select beer.name, COUNT(*) as count
 From buys, beer
@@ -28,6 +32,8 @@ Group By beer.name
 Order By 2 Desc
 limit 5
 "]
+
+puts "got top selling beer"
 
 configure do
   set :bind, '0.0.0.0'
