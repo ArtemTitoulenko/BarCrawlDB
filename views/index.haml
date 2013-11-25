@@ -85,6 +85,102 @@
 
       .featurette-divider
 
+    .header-image
+      .headline
+        .container
+          %h1 The SQL
+          %h2 Like finding the best valued beer, these statements will help you get the most out of our database.
+
+    .container
+      .featurette-divider
+
+      #sql.featurette
+        .row
+          .col-lg-6
+            %h3 Show that drinkers who work at a certain company tend to frequent the same bars
+            %pre
+              select bar.`name`, company.`name`, count(buys.`day`) visits
+              from buys, drinker, company, bar
+              where buys.`bar_id` = bar.`id`
+              and buys.`drinker_id` = drinker.`id`
+              and drinker.`company_id` = company.`id`
+              group by  bar.`name`, company.`name`
+              order by 1,2, 3
+          .col-lg-6
+            %h3 Show that drinkers who are younger drink more than older people
+            %pre
+              select pattern.age, avg(pattern.quantity) average, max(pattern.quantity) maximum, min(pattern.quantity) minimum,
+              avg(pattern.quantity)/2 average_time_hrs
+              from
+              (select drinker.`age`, buys.`day`, sum(buys.`quantity`) quantity
+              from buys, drinker
+              where buys.`drinker_id` = drinker.`id`
+              group by drinker.`age`, buys.`day`) pattern
+              group by pattern.age
+              order by pattern.age asc
+
+        .row
+          .col-lg-6
+            %h3 Show a drinker’s standard night out by taking in descending order the date that a drinker buys a drink in a time interval to simulate a “bar crawl.”
+            %pre
+              select age, day, avg(bars_count), avg(quantity)
+              from
+              (select drinker.`age`, drinker.`id`,  buys.week_number, buys.`day`, count(bar.`name`) bars_count, sum(buys.`quantity`) quantity
+              from buys, drinker, bar
+              where buys.`drinker_id` = drinker.`id`
+              and buys.`bar_id` = bar.`id`
+              group by 1,2,3,4) pattern
+              group by age, day
+              order by day, age
+          .col-lg-6
+            %h3 Find companies with the largest amount of beer consumed
+            %pre
+              select c.`name`, sum(a.`quantity`)
+              from buys a, drinker b, company c
+              where a.`drinker_id`= b.`id`
+              and b.`company_id` = c.`id`
+              group by c.`name`
+              order by 2 desc
+
+
+        .row
+          .col-lg-6
+            %h3 Company listed the largest amount of money spent on beer and quantity
+            %pre
+              select c.`name`, sum(a.`quantity`) quantity, sum(a.`quantity` *  d.`price`) money_spent
+              from buys a, drinker b, company c, sells d
+              where a.`drinker_id`= b.`id`
+              and b.`company_id` = c.`id`
+              and a.`beer_id` = d.`beer_id` and a.`bar_id` = d.`bar_id`
+              group by c.`name`
+              order by 3 desc, 2 desc
+          .col-lg-6
+            %h3 What are the favorite nights of a week for drinking beer for various ages
+            %pre
+              select age, day, avg(bars_count), avg(quantity)
+              from
+              (select drinker.`age`, drinker.`id`,   buys.`day`, count(bar.`name`) bars_count, sum(buys.`quantity`) quantity
+              from buys, drinker, bar
+              where buys.`drinker_id` = drinker.`id`
+              and buys.`bar_id` = bar.`id`
+              group by 1,2,3) pattern
+              group by age, day
+              order by day, age
+
+        .row
+          .col-lg-6
+            %h3 Favorite bars by age
+            %pre
+              select drinker.`age`, bar.name bar_name, count(bar.`name`) visit_count, sum(buys.`quantity`) quantity,
+              sum(buys.`quantity` * sells.`price`)
+              from buys, drinker, bar, sells
+              where buys.`drinker_id` = drinker.`id`
+              and buys.`bar_id` = bar.`id`
+              and sells.`bar_id` = buys.`bar_id`
+              and sells.`beer_id` = buys.`beer_id`
+              group by 1,2
+              order by 1 asc, 3 desc
+
     %script
       // all the data should go in here
       var drinker_age_dist = #{drinker_age_dist}
