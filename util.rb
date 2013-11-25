@@ -34,7 +34,7 @@ def init_tables(client)
 
   # drinker table
   client.query('CREATE TABLE IF NOT EXISTS `drinker` (
-    `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+    `id` int(11) unsigned NOT NULL,
     `name` text NOT NULL,
     `address` text NOT NULL,
     `age` int(11) unsigned NOT NULL,
@@ -51,7 +51,7 @@ def init_tables(client)
 
   # bar table
   client.query('CREATE TABLE IF NOT EXISTS `bar` (
-    `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+    `id` int(11) unsigned NOT NULL,
     `name` text NOT NULL,
     `address` text NOT NULL,
     PRIMARY KEY (`id`)
@@ -69,7 +69,7 @@ def init_tables(client)
 
   # beer table
   client.query('CREATE TABLE IF NOT EXISTS `beer` (
-    `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+    `id` int(11) unsigned NOT NULL,
     `name` text NOT NULL,
     `manf` text NOT NULL,
     `recyclable` tinyint(1) NOT NULL,
@@ -78,7 +78,7 @@ def init_tables(client)
 
   # company table
   client.query('CREATE TABLE IF NOT EXISTS `company` (
-    `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+    `id` int(11) unsigned NOT NULL,
     `name` text NOT NULL,
     `address` text NOT NULL,
     PRIMARY KEY (`id`)
@@ -86,29 +86,29 @@ def init_tables(client)
 end
 
 def insert_company(client, company)
-  query = "insert into company (name, address)
-    values ('#{company.name.db_norm}', '#{company.address.to_s}');"
+  query = "insert into company (id, name, address)
+    values ('#{company.id}','#{company.name.db_norm}', '#{company.address.to_s}');"
   client.query(query)
 end
 
 def insert_drinkers(client, drinkers)
-  query = "insert into drinker (name, address, age, company_id)
+  query = "insert into drinker (id, name, address, age, company_id)
     values "
   query << drinkers.map { |drinker|
-      "('#{drinker.name.db_norm}', '#{drinker.address.to_s}', '#{drinker.age}', '#{drinker.company_id}')"
+      "('#{drinker.id}','#{drinker.name.db_norm}', '#{drinker.address.to_s}', '#{drinker.age}', '#{drinker.company_id}')"
     }.join(",") + ";"
   client.query(query)
 end
 
 def insert_beer(client, beer)
-  query = "insert into beer (name, manf, recyclable)
-    values ('#{beer.name.db_norm}', '#{beer.manf}', '#{beer.recyclable ? 1 : 0}');"
+  query = "insert into beer (id, name, manf, recyclable)
+    values ('#{beer.id}','#{beer.name.db_norm}', '#{beer.manf}', '#{beer.recyclable ? 1 : 0}');"
   client.query(query)
 end
 
 def insert_bar(client, bar)
-  query = "insert into bar (name, address)
-    values ('#{bar.name.db_norm}', '#{bar.address.to_s}');"
+  query = "insert into bar (id, name, address)
+    values ('#{bar.id}','#{bar.name.db_norm}', '#{bar.address.to_s}');"
   client.query(query)
 end
 
@@ -122,7 +122,7 @@ def insert_purchases(client, purchases)
   query = "insert into buys (bar_id, drinker_id, beer_id, quantity, day, bar_number)
     values"
   query << purchases.map { |buy|
-      "('#{buy.bar_id}', '#{buy.person_id}', '#{buy.beer_id}', '#{buy.quantity}', '#{buy.day}', '#{buy.bar_number}')"
+      "('#{buy.bar_id}', '#{buy.person_id}', '#{buy.beer_id}', '#{buy.quantity}', '#{buy.day}', '#{buy.bar_number+1}')"
     }.join(",") + ";"
   client.query(query)
 end
