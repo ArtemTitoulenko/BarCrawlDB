@@ -32,23 +32,6 @@ end
 def init_tables(client)
   return unless client.is_a? Mysql2::Client
 
-  # drinker table
-  client.query('CREATE TABLE IF NOT EXISTS `drinker` (
-    `id` int(11) unsigned NOT NULL,
-    `name` text NOT NULL,
-    `address` text NOT NULL,
-    `age` int(11) unsigned NOT NULL,
-    `company_id` int(11) unsigned NOT NULL,
-    PRIMARY KEY (`id`)
-  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;')
-
-  # sells table
-  client.query('CREATE TABLE IF NOT EXISTS `sells` (
-    `bar_id` int(11) unsigned NOT NULL,
-    `beer_id` int(11) unsigned NOT NULL,
-    `price` int(11) unsigned NOT NULL
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;')
-
   # bar table
   client.query('CREATE TABLE IF NOT EXISTS `bar` (
     `id` int(11) unsigned NOT NULL,
@@ -56,16 +39,6 @@ def init_tables(client)
     `address` text NOT NULL,
     PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8;')
-
-  # buys table
-  client.query('CREATE TABLE IF NOT EXISTS `buys` (
-    `bar_id` int(11) unsigned NOT NULL,
-    `drinker_id` int(11) unsigned NOT NULL,
-    `beer_id` int(11) unsigned NOT NULL,
-    `quantity` int(11) unsigned NOT NULL,
-    `day` int(11) unsigned NOT NULL,
-    `bar_number` int(11) unsigned NOT NULL
-  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;')
 
   # beer table
   client.query('CREATE TABLE IF NOT EXISTS `beer` (
@@ -82,6 +55,45 @@ def init_tables(client)
     `name` text NOT NULL,
     `address` text NOT NULL,
     PRIMARY KEY (`id`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;')
+
+  # drinker table
+  client.query('CREATE TABLE `drinker` (
+    `id` int(11) unsigned NOT NULL,
+    `name` text NOT NULL,
+    `address` text NOT NULL,
+    `age` int(11) unsigned NOT NULL,
+    `company_id` int(11) unsigned NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `company_id` (`company_id`),
+    CONSTRAINT `drinker_ibfk_1` FOREIGN KEY (`company_id`) REFERENCES `company` (`id`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;')
+
+  # sells table
+  client.query('CREATE TABLE `sells` (
+    `bar_id` int(11) unsigned NOT NULL,
+    `beer_id` int(11) unsigned NOT NULL,
+    `price` int(11) unsigned NOT NULL,
+    KEY `bar_id` (`bar_id`),
+    KEY `beer_id` (`beer_id`),
+    CONSTRAINT `sells_ibfk_2` FOREIGN KEY (`beer_id`) REFERENCES `beer` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+    CONSTRAINT `sells_ibfk_1` FOREIGN KEY (`bar_id`) REFERENCES `bar` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;')
+
+  # buys table
+    client.query('CREATE TABLE `buys` (
+    `bar_id` int(11) unsigned NOT NULL,
+    `drinker_id` int(11) unsigned NOT NULL,
+    `beer_id` int(11) unsigned NOT NULL,
+    `quantity` int(11) unsigned NOT NULL,
+    `day` int(11) unsigned NOT NULL,
+    `bar_number` int(11) unsigned NOT NULL,
+    KEY `bar_id` (`bar_id`),
+    KEY `drinker_id` (`drinker_id`),
+    KEY `beer_id` (`beer_id`),
+    CONSTRAINT `buys_ibfk_3` FOREIGN KEY (`beer_id`) REFERENCES `beer` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+    CONSTRAINT `buys_ibfk_1` FOREIGN KEY (`bar_id`) REFERENCES `bar` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+    CONSTRAINT `buys_ibfk_2` FOREIGN KEY (`drinker_id`) REFERENCES `drinker` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8;')
 end
 

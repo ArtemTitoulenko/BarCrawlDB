@@ -184,15 +184,13 @@ buy_some_drinks = -> person, bar, day, bar_of_the_day {
   categories = [cheap, expensive]
 
   # old == 0 => 2 beers at most, old == 1 => 4 beers at most
-  irand([2,4][old]).times do |i|
-    # old == 0 => cheap list, old == 1 => expensive list
-    # try to grab a beer from that person's preferred category
-    # if it's not there, grab one from the other one
-    category = [cheap, expensive][old]
-    category = [cheap, expensive][(old == 0 ? 1 : 0)] if category.empty?
-    beer = bar.sells[category.sample].sample
-    buys << Buys.new(bar.id, person.id, beer.id, irand(2), day, bar_of_the_day)
-  end
+  # old == 0 => cheap list, old == 1 => expensive list
+  # try to grab a beer from that person's preferred category
+  # if it's not there, grab one from the other one
+  category = [cheap, expensive][old]
+  category = [cheap, expensive][(old == 0 ? 1 : 0)] if category.empty?
+  beer = bar.sells[category.sample].sample
+  buys << Buys.new(bar.id, person.id, beer.id, irand([2,4][old])+1, day, bar_of_the_day)
 }
 
 # people[], bars[], day, bar_of_the_day int
