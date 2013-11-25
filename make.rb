@@ -174,7 +174,7 @@ days_of_drinking = 31 * 6 # 6 months
 
 is_old = -> person { return person.age > 30 ? 1 : 0 }
 
-buy_some_drinks = -> person, bar, day, bar_of_the_day {
+buy_some_drinks = -> person, bar, day, bar_of_the_day, week_num {
   # young people drink less beer and it's cheaper beer
   old = is_old[person]
 
@@ -190,11 +190,11 @@ buy_some_drinks = -> person, bar, day, bar_of_the_day {
   category = [cheap, expensive][old]
   category = [cheap, expensive][(old == 0 ? 1 : 0)] if category.empty?
   beer = bar.sells[category.sample].sample
-  buys << Buys.new(bar.id, person.id, beer.id, irand([2,4][old])+1, day, bar_of_the_day)
+  buys << Buys.new(bar.id, person.id, beer.id, irand([2,4][old])+1, day, bar_of_the_day, week_num)
 }
 
 # people[], bars[], day, bar_of_the_day int
-bar_crawl = -> people, bars, day {
+bar_crawl = -> people, bars, day, week_num {
   bars.each_with_index do |bar, bar_of_the_day|
     people.each do |person|
       # young people drink less beer and it's cheaper beer
@@ -203,7 +203,7 @@ bar_crawl = -> people, bars, day {
       # if they probably aren't drinking today, don't buy any drinks
       next if weekday_drinking[old][day] > rand
 
-      buy_some_drinks[person, bar, day, bar_of_the_day]
+      buy_some_drinks[person, bar, day, bar_of_the_day, week_num]
     end
   end
 }
@@ -241,10 +241,10 @@ companies.each do |company|
 
       # do "the regular" 75% of the time
       if rand > 0.25
-        bar_crawl[group, the_regular, day_of_the_week]
+        bar_crawl[group, the_regular, day_of_the_week, day/7]
       else
         # skip at most 4 of the nearby bars, and try to visit the others
-        bar_crawl[group, nearby_bars.drop(irand(4)).take(num_bars_to_visit), day_of_the_week]
+        bar_crawl[group, nearby_bars.drop(irand(4)).take(num_bars_to_visit), day_of_the_week, day/7]
       end
     end
   end

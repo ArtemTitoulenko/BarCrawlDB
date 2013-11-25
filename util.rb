@@ -88,6 +88,7 @@ def init_tables(client)
     `quantity` int(11) unsigned NOT NULL,
     `day` int(11) unsigned NOT NULL,
     `bar_number` int(11) unsigned NOT NULL,
+    `week_number` int(11) unsigned NOT NULL,
     KEY `bar_id` (`bar_id`),
     KEY `drinker_id` (`drinker_id`),
     KEY `beer_id` (`beer_id`),
@@ -131,10 +132,10 @@ def insert_beer_sale(client, bar, beer, price)
 end
 
 def insert_purchases(client, purchases)
-  query = "insert into buys (bar_id, drinker_id, beer_id, quantity, day, bar_number)
+  query = "insert into buys (bar_id, drinker_id, beer_id, quantity, day, bar_number, week_number)
     values"
   query << purchases.map { |buy|
-      "('#{buy.bar_id}', '#{buy.person_id}', '#{buy.beer_id}', '#{buy.quantity}', '#{buy.day}', '#{buy.bar_number+1}')"
+      "('#{buy.bar_id}', '#{buy.person_id}', '#{buy.beer_id}', '#{buy.quantity}', '#{buy.day}', '#{buy.bar_number+1}', '#{buy.week_number}')"
     }.join(",") + ";"
   client.query(query)
 end
